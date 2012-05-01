@@ -30,8 +30,11 @@ class Registry(object):
         adapter = self.lookup(obs, target, name)
         if adapter is None:
             return None
-        return adapter(*obs)
-
+        try:
+            return adapter(*obs)
+        except TypeError, e:
+            raise TypeError(str(e) + " (%s)" % adapter)
+    
     def get_subscribed(self):
         pass
 

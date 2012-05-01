@@ -197,3 +197,27 @@ def test_name():
     assert ITarget.component(alpha, registry=reg, name='x') is foo
     assert ITarget.component(alpha, registry=reg, default=None) is None
     
+def test_non_adapter_looked_up_as_adapter():
+    reg = Registry()
+    foo = object()
+    reg.register([Alpha], ITarget, '', foo)
+    alpha = Alpha()
+    with py.test.raises(TypeError):
+        ITarget(alpha, registry=reg)
+    
+def test_adapter_with_wrong_args():
+    class Adapter(object):
+        # takes no args
+        def __init__(self):
+            pass
+    reg = Registry()
+    reg.register([Alpha], ITarget, '', Adapter)
+    alpha = Alpha()
+    
+    with py.test.raises(TypeError) as e:
+        ITarget(alpha, registry=reg)
+
+    assert str(e.value) == ("__init__() takes exactly 1 argument (2 given) "
+                            "(<class 'crom.test_registry.Adapter'>)")
+    
+
