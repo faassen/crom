@@ -1,4 +1,4 @@
-from .component import InstanceRegistry, Registry
+from .registry import InstanceRegistry, Registry
 from crom import Interface, implements
 
 class IAlpha(Interface):
