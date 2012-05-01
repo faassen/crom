@@ -6,14 +6,11 @@ from zope.interface.interfaces import ComponentLookupError
 from crom.directives import source, target, name, registry, implements
 from crom.grokkers import utility, adapter
 
-from zope.interface.interface import InterfaceClass
-from .lookup import adapter_lookup, component_lookup
+from . import monkey
 
 from .current import get_current_registry
 
-# # monkey patch instead of adapter hooks mechanism for greater flexibility
-InterfaceClass._original_call = InterfaceClass.__call__
-InterfaceClass.__call__ = adapter_lookup
-InterfaceClass.adapter = adapter_lookup
-InterfaceClass.component = component_lookup
-
+# we do the absolutely compatible monkey patches first, not breaking
+# the __call__ behavior of interface in any possible way as we don't touch it
+# to change the __call__ behavior use .monkey.compat() instead
+monkey.safe()

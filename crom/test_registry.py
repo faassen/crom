@@ -1,6 +1,7 @@
 import py.test
 from .registry import Registry
 from crom import Interface, implements, ComponentLookupError
+from . import monkey
 
 class IAlpha(Interface):
     pass
@@ -19,6 +20,12 @@ class Beta(object):
 class ITarget(Interface):
     pass
 
+def setup_function(method):
+    monkey.incompat()
+
+def teardown_function(method):
+    monkey.revert()
+    
 def test_component_no_source():
     reg = Registry()
     foo = object()
