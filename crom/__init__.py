@@ -5,34 +5,13 @@ from zope.interface import Interface
 from crom.directives import source, target, name, registry, implements
 from crom.grokkers import utility, adapter
 
+from zope.interface.interface import InterfaceClass
+from .lookup import adapter_lookup, utility_lookup
 
-# we do want to make adapters automatically get called when used
+from .current import get_current_registry
 
-# traditional naming
-#        not called     | called
-
-# 0      utility          null adapter
-# 1      context utility  adapter
-# n      multi utility    multi adapter
-
-# lookup strategy:
-
-# get the 1, or get a list of all possibilities (subscribers)
-
-# @grokker
-# @directive(source)
-# @directive(target)
-# @directive(name)
-# @directive(registry)
-# def utility(scanner, name, ob, source, target, name, registry):
-#     pass
-
-# there is a list of registries that you can look up in
-# alternatively it can use a globally set list of registries to
-# look into, this is the equivalent to a site
-# @registry can be used to register something with a particular registry
-# (only once, I think., or should this be a list?).
-# the argument is either a function to look up the registry (found when
-# the config action is executed), or an IRegistry object directly.
-
+# # monkey patch instead of adapter hooks mechanism for greater flexibility
+InterfaceClass._original_call = InterfaceClass.__call__
+InterfaceClass.__call__ = adapter_lookup
+InterfaceClass.utility = utility_lookup
 

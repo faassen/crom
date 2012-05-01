@@ -71,13 +71,14 @@ def test_instance_not_found():
     assert reg.lookup([], ITarget, '') is None
     alpha = Alpha()
     assert reg.lookup([alpha], ITarget, '') is None
-    
+
 def test_utility_no_source():
     reg = Registry()
     foo = object()
     reg.register_utility((), ITarget, '', foo)
     assert reg.get_utility([], ITarget, '') is foo
-
+    assert ITarget.utility(registry=reg) is foo
+    
 def test_utility_one_source():
     reg = Registry()
     foo = object()
@@ -85,7 +86,8 @@ def test_utility_one_source():
 
     alpha = Alpha()
     assert reg.get_utility([alpha], ITarget, '') is foo
-
+    assert ITarget.utility(alpha, registry=reg) is foo
+    
 def test_utility_two_sources():
     reg = Registry()
     foo = object()
@@ -94,7 +96,8 @@ def test_utility_two_sources():
     alpha = Alpha()
     beta = Beta()
     assert reg.get_utility([alpha, beta], ITarget, '') is foo
-
+    assert ITarget.utility(alpha, beta, registry=reg) is foo
+    
 def test_utility_to_itself():
     reg = Registry()
     alpha = Alpha()
@@ -104,6 +107,7 @@ def test_utility_to_itself():
     reg.register_utility([IAlpha], IAlpha, '', foo)
 
     assert reg.get_utility([alpha], IAlpha, '') is foo
+    assert IAlpha.utility(alpha, registry=reg) is foo
     
 def test_adapter_no_source():
     reg = Registry()
@@ -115,6 +119,7 @@ def test_adapter_no_source():
     reg.register_adapter((), ITarget, '', factory)
 
     assert reg.get_adapter([], ITarget, '') is foo
+    assert ITarget(registry=reg) is foo
     
 def test_adapter_one_source():
     reg = Registry()
@@ -130,7 +135,10 @@ def test_adapter_one_source():
     adapted = reg.get_adapter([alpha], ITarget, '')
     assert isinstance(adapted, Adapted)
     assert adapted.context is alpha
-
+    adapted = ITarget(alpha, registry=reg)
+    assert isinstance(adapted, Adapted)
+    assert adapted.context is alpha
+    
 def test_adapter_to_itself():
     reg = Registry()
 
@@ -147,7 +155,8 @@ def test_adapter_to_itself():
     # behavior is the same with registration
     reg.register_adapter([IAlpha], IAlpha, '', Adapter)
     assert reg.get_adapter([alpha], IAlpha, '') is alpha
-
+    assert IAlpha(alpha, registry=reg) is alpha
+    
 def test_adapter_two_sources():
     reg = Registry()
 
@@ -167,3 +176,7 @@ def test_adapter_two_sources():
     assert adapted.alpha is alpha
     assert adapted.beta is beta
 
+    adapted = ITarget(alpha, beta, registry=reg)
+    assert isinstance(adapted, Adapted)
+    assert adapted.alpha is alpha
+    assert adapted.beta is beta
