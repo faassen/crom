@@ -220,4 +220,13 @@ def test_adapter_with_wrong_args():
     assert str(e.value) == ("__init__() takes exactly 1 argument (2 given) "
                             "(<class 'crom.test_registry.Adapter'>)")
     
-
+def test_extra_kw():
+    reg = Registry()
+    foo = object()
+    
+    reg.register([Alpha], ITarget, '', foo)
+    alpha = Alpha()
+    
+    with py.test.raises(TypeError) as e:
+        ITarget.component(alpha, registry=reg, extra="illegal")
+    assert str(e.value) == 'Illegal extra keyword arguments: extra'

@@ -8,6 +8,9 @@ def lookup(iface, lookup_func, component_name, *args, **kw):
     target = iface
     name = kw.pop('name', '')
     default = kw.pop('default', SENTINEL)
+    if kw:
+        raise TypeError("Illegal extra keyword arguments: %s" %
+                        ', '.join(kw.keys()))
     component = lookup_func(sources, target, name)
     
     if component is not None:
