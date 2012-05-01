@@ -19,11 +19,11 @@ def lookup(iface, lookup_func, utility_or_adapter, *args, **kw):
         (utility_or_adapter, sources, target))
 
 # iface will serve as 'self' when monkey-patched onto InterfaceClass
-def utility_lookup(iface, *args, **kw):
+def component_lookup(iface, *args, **kw):
     registry = kw.pop('registry', None)
     #if registry is None:
     #    registry = get_current_registry()
-    return lookup(iface, registry.lookup, 'utility', *args, **kw)
+    return lookup(iface, registry.lookup, 'component', *args, **kw)
 
 def adapter_lookup(iface, *args, **kw):
     # shortcut bail out necessary to make this work without known registry

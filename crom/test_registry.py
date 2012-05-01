@@ -24,7 +24,7 @@ def test_component_no_source():
     foo = object()
     reg.register((), ITarget, '', foo)
     assert reg.lookup([], ITarget, '') is foo
-    assert ITarget.utility(registry=reg) is foo
+    assert ITarget.component(registry=reg) is foo
     
 def test_component_one_source():
     reg = Registry()
@@ -33,7 +33,7 @@ def test_component_one_source():
 
     alpha = Alpha()
     assert reg.lookup([alpha], ITarget, '') is foo
-    assert ITarget.utility(alpha, registry=reg) is foo
+    assert ITarget.component(alpha, registry=reg) is foo
     
 def test_component_two_sources():
     reg = Registry()
@@ -43,7 +43,7 @@ def test_component_two_sources():
     alpha = Alpha()
     beta = Beta()
     assert reg.lookup([alpha, beta], ITarget, '') is foo
-    assert ITarget.utility(alpha, beta, registry=reg) is foo
+    assert ITarget.component(alpha, beta, registry=reg) is foo
     
 def test_component_class_based_registration():
     reg = Registry()
@@ -52,7 +52,7 @@ def test_component_class_based_registration():
 
     alpha = Alpha()
     assert reg.lookup([alpha], ITarget, '') is foo
-    assert ITarget.utility(alpha, registry=reg) is foo
+    assert ITarget.component(alpha, registry=reg) is foo
     
 def test_component_inheritance():
     reg = Registry()
@@ -69,7 +69,7 @@ def test_component_inheritance():
     delta = Delta()
     
     assert reg.lookup([delta], ITarget, '') is foo
-    assert ITarget.utility(delta, registry=reg) is foo
+    assert ITarget.component(delta, registry=reg) is foo
     
 def test_component_not_found():
     reg = Registry()
@@ -77,9 +77,9 @@ def test_component_not_found():
     assert reg.lookup([], ITarget, '') is None
     alpha = Alpha()
     assert reg.lookup([alpha], ITarget, '') is None
-    assert ITarget.utility(alpha, registry=reg, default=None) is None
+    assert ITarget.component(alpha, registry=reg, default=None) is None
     with py.test.raises(ComponentLookupError):
-        ITarget.utility(alpha, registry=reg)
+        ITarget.component(alpha, registry=reg)
 
 def test_component_to_itself():
     reg = Registry()
@@ -90,7 +90,7 @@ def test_component_to_itself():
     reg.register([IAlpha], IAlpha, '', foo)
 
     assert reg.lookup([alpha], IAlpha, '') is foo
-    assert IAlpha.utility(alpha, registry=reg) is foo
+    assert IAlpha.component(alpha, registry=reg) is foo
     
 def test_adapter_no_source():
     reg = Registry()

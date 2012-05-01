@@ -7,7 +7,7 @@ from crom.directives import source, target, name, registry, implements
 from crom.grokkers import utility, adapter
 
 from zope.interface.interface import InterfaceClass
-from .lookup import adapter_lookup, utility_lookup
+from .lookup import adapter_lookup, component_lookup
 
 from .current import get_current_registry
 
@@ -15,5 +15,5 @@ from .current import get_current_registry
 InterfaceClass._original_call = InterfaceClass.__call__
 InterfaceClass.__call__ = adapter_lookup
 InterfaceClass.adapter = adapter_lookup
-InterfaceClass.utility = utility_lookup
+InterfaceClass.component = component_lookup
 
