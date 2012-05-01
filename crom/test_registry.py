@@ -184,3 +184,16 @@ def test_adapter_two_sources():
     assert adapted.alpha is alpha
     assert adapted.beta is beta
     
+def test_default():
+    reg = Registry()
+
+    assert ITarget.component(registry=reg, default='blah') == 'blah'
+
+def test_name():
+    reg = Registry()
+    foo = object()
+    reg.register([Alpha], ITarget, 'x', foo)
+    alpha = Alpha()
+    assert ITarget.component(alpha, registry=reg, name='x') is foo
+    assert ITarget.component(alpha, registry=reg, default=None) is None
+    
