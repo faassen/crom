@@ -95,4 +95,49 @@ def test_utility_two_sources():
     beta = Beta()
     assert reg.get_utility([alpha, beta], ITarget, '') is foo
     
+def test_adapter_no_source():
+    reg = Registry()
+
+    foo = object()
+    def factory():
+        return foo
+    
+    reg.register_adapter((), ITarget, '', factory)
+
+    assert reg.get_adapter([], ITarget, '') is foo
+    
+def test_adapter_one_source():
+    reg = Registry()
+
+    @implements(ITarget)
+    class Adapted(object):
+        def __init__(self, context):
+            self.context = context
+    
+    reg.register_adapter([IAlpha], ITarget, '', Adapted)
+    
+    alpha = Alpha()
+    adapted = reg.get_adapter([alpha], ITarget, '')
+    assert isinstance(adapted, Adapted)
+    assert adapted.context is alpha
+    
+def test_adapter_two_sources():
+    reg = Registry()
+
+    @implements(ITarget)
+    class Adapted(object):
+        def __init__(self, alpha, beta):
+            self.alpha = alpha
+            self.beta = beta
+
+    reg.register_adapter([IAlpha, IBeta], ITarget, '', Adapted)
+
+    alpha = Alpha()
+    beta = Beta()
+    adapted = reg.get_adapter([alpha, beta], ITarget, '')
+
+    assert isinstance(adapted, Adapted)
+    assert adapted.alpha is alpha
+    assert adapted.beta is beta
+    
 
