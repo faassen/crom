@@ -4,7 +4,7 @@ from zope.interface import Interface
 from zope.interface.interfaces import ComponentLookupError
 
 from crom.directives import source, target, name, registry, implements
-from crom.grokkers import utility, adapter
+from crom.grokkers import component, adapter
 
 from . import monkey
 
