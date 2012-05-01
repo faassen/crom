@@ -38,6 +38,9 @@ class Registry(object):
         return self.utilities.lookup(obs, target, name)
 
     def get_adapter(self, obs, target, name):
+        # self-adaptation
+        if len(obs) == 1 and target.providedBy(obs[0]):
+            return obs[0]
         adapter = self.adapters.lookup(obs, target, name)
         if adapter is None:
             return None
