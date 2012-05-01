@@ -12,9 +12,12 @@ def incompat():
     InterfaceClass._original_call = InterfaceClass.__call__
     InterfaceClass.__call__ = adapter_lookup
 
-def revert():
-    InterfaceClass.__call__ = InterfaceClass._original_call
-    del InterfaceClass._original_call
+def revert_safe():
     del InterfaceClass.component
     del InterfaceClass.adapter
+    
+def revert_incompat():
+    revert_safe()
+    InterfaceClass.__call__ = InterfaceClass._original_call
+    del InterfaceClass._original_call
     

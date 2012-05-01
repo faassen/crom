@@ -24,7 +24,7 @@ def setup_function(method):
     monkey.incompat()
 
 def teardown_function(method):
-    monkey.revert()
+    monkey.revert_incompat()
     
 def test_component_no_source():
     reg = Registry()
