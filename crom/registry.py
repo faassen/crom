@@ -3,7 +3,7 @@ from zope.interface.interfaces import ISpecification
 from zope.interface.adapter import AdapterRegistry
 from ._compat import CLASS_TYPES
 
-class InstanceRegistry(object):
+class Registry(object):
     def __init__(self):
         self.registry = AdapterRegistry()
 
@@ -23,25 +23,11 @@ class InstanceRegistry(object):
     def lookup(self, obs, target, name):
         return self.registry.lookup(map(providedBy, obs), target, name)
 
-class Registry(object):
-    def __init__(self):
-        self.utilities = InstanceRegistry()
-        self.adapters = InstanceRegistry()
-
-    def register_utility(self, sources, target, name, component):
-        self.utilities.register(sources, target, name, component)
-        
-    def register_adapter(self, sources, target, name, component):
-        self.adapters.register(sources, target, name, component)
-        
-    def get_utility(self, obs, target, name):
-        return self.utilities.lookup(obs, target, name)
-
     def get_adapter(self, obs, target, name):
         # self-adaptation
         if len(obs) == 1 and target.providedBy(obs[0]):
             return obs[0]
-        adapter = self.adapters.lookup(obs, target, name)
+        adapter = self.lookup(obs, target, name)
         if adapter is None:
             return None
         return adapter(*obs)

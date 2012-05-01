@@ -23,10 +23,12 @@ def utility_lookup(iface, *args, **kw):
     registry = kw.pop('registry', None)
     #if registry is None:
     #    registry = get_current_registry()
-    return lookup(iface, registry.get_utility, 'utility', *args, **kw)
+    return lookup(iface, registry.lookup, 'utility', *args, **kw)
 
 def adapter_lookup(iface, *args, **kw):
+    # shortcut bail out necessary to make this work without known registry
+    if len(args) == 1 and iface.providedBy(args[0]):
+        return args[0]
     registry = kw.pop('registry', None)
-    #registry = get_current_registry()
     return lookup(iface, registry.get_adapter, 'adapter', *args, **kw)
 

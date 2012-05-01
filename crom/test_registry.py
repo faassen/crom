@@ -1,5 +1,6 @@
-from .registry import InstanceRegistry, Registry
-from crom import Interface, implements
+import py.test
+from .registry import Registry
+from crom import Interface, implements, ComponentLookupError
 
 class IAlpha(Interface):
     pass
@@ -18,39 +19,43 @@ class Beta(object):
 class ITarget(Interface):
     pass
 
-def test_instance_no_source():
-    reg = InstanceRegistry()
+def test_component_no_source():
+    reg = Registry()
     foo = object()
     reg.register((), ITarget, '', foo)
     assert reg.lookup([], ITarget, '') is foo
+    assert ITarget.utility(registry=reg) is foo
     
-def test_instance_one_source():
-    reg = InstanceRegistry()
+def test_component_one_source():
+    reg = Registry()
     foo = object()
     reg.register((IAlpha,), ITarget, '', foo)
 
     alpha = Alpha()
     assert reg.lookup([alpha], ITarget, '') is foo
+    assert ITarget.utility(alpha, registry=reg) is foo
     
-def test_instance_two_sources():
-    reg = InstanceRegistry()
+def test_component_two_sources():
+    reg = Registry()
     foo = object()
     reg.register((IAlpha, IBeta), ITarget, '', foo)
 
     alpha = Alpha()
     beta = Beta()
     assert reg.lookup([alpha, beta], ITarget, '') is foo
-
-def test_instance_class_based_registration():
-    reg = InstanceRegistry()
+    assert ITarget.utility(alpha, beta, registry=reg) is foo
+    
+def test_component_class_based_registration():
+    reg = Registry()
     foo = object()
     reg.register((Alpha,), ITarget, '', foo)
 
     alpha = Alpha()
     assert reg.lookup([alpha], ITarget, '') is foo
-
-def test_instance_inheritance():
-    reg = InstanceRegistry()
+    assert ITarget.utility(alpha, registry=reg) is foo
+    
+def test_component_inheritance():
+    reg = Registry()
     foo = object()
 
     class Gamma(object):
@@ -64,49 +69,27 @@ def test_instance_inheritance():
     delta = Delta()
     
     assert reg.lookup([delta], ITarget, '') is foo
-
-def test_instance_not_found():
-    reg = InstanceRegistry()
+    assert ITarget.utility(delta, registry=reg) is foo
+    
+def test_component_not_found():
+    reg = Registry()
     
     assert reg.lookup([], ITarget, '') is None
     alpha = Alpha()
     assert reg.lookup([alpha], ITarget, '') is None
+    assert ITarget.utility(alpha, registry=reg, default=None) is None
+    with py.test.raises(ComponentLookupError):
+        ITarget.utility(alpha, registry=reg)
 
-def test_utility_no_source():
-    reg = Registry()
-    foo = object()
-    reg.register_utility((), ITarget, '', foo)
-    assert reg.get_utility([], ITarget, '') is foo
-    assert ITarget.utility(registry=reg) is foo
-    
-def test_utility_one_source():
-    reg = Registry()
-    foo = object()
-    reg.register_utility([IAlpha], ITarget, '', foo)
-
-    alpha = Alpha()
-    assert reg.get_utility([alpha], ITarget, '') is foo
-    assert ITarget.utility(alpha, registry=reg) is foo
-    
-def test_utility_two_sources():
-    reg = Registry()
-    foo = object()
-    reg.register_utility([IAlpha, IBeta], ITarget, '', foo)
-
-    alpha = Alpha()
-    beta = Beta()
-    assert reg.get_utility([alpha, beta], ITarget, '') is foo
-    assert ITarget.utility(alpha, beta, registry=reg) is foo
-    
-def test_utility_to_itself():
+def test_component_to_itself():
     reg = Registry()
     alpha = Alpha()
 
     foo = object()
     
-    reg.register_utility([IAlpha], IAlpha, '', foo)
+    reg.register([IAlpha], IAlpha, '', foo)
 
-    assert reg.get_utility([alpha], IAlpha, '') is foo
+    assert reg.lookup([alpha], IAlpha, '') is foo
     assert IAlpha.utility(alpha, registry=reg) is foo
     
 def test_adapter_no_source():
@@ -116,9 +99,10 @@ def test_adapter_no_source():
     def factory():
         return foo
     
-    reg.register_adapter((), ITarget, '', factory)
+    reg.register((), ITarget, '', factory)
 
     assert reg.get_adapter([], ITarget, '') is foo
+    assert ITarget.adapter(registry=reg) is foo
     assert ITarget(registry=reg) is foo
     
 def test_adapter_one_source():
@@ -129,13 +113,16 @@ def test_adapter_one_source():
         def __init__(self, context):
             self.context = context
     
-    reg.register_adapter([IAlpha], ITarget, '', Adapted)
+    reg.register([IAlpha], ITarget, '', Adapted)
     
     alpha = Alpha()
     adapted = reg.get_adapter([alpha], ITarget, '')
     assert isinstance(adapted, Adapted)
     assert adapted.context is alpha
     adapted = ITarget(alpha, registry=reg)
+    assert isinstance(adapted, Adapted)
+    assert adapted.context is alpha
+    adapted = ITarget.adapter(alpha, registry=reg)
     assert isinstance(adapted, Adapted)
     assert adapted.context is alpha
     
@@ -151,11 +138,15 @@ def test_adapter_to_itself():
 
     # behavior without any registration; we get the object back
     assert reg.get_adapter([alpha], IAlpha, '') is alpha
-
+    assert IAlpha(alpha, registry=reg) is alpha
+    # it works even without registry
+    assert IAlpha(alpha) is alpha
+    
     # behavior is the same with registration
-    reg.register_adapter([IAlpha], IAlpha, '', Adapter)
+    reg.register([IAlpha], IAlpha, '', Adapter)
     assert reg.get_adapter([alpha], IAlpha, '') is alpha
     assert IAlpha(alpha, registry=reg) is alpha
+    assert IAlpha(alpha) is alpha
     
 def test_adapter_two_sources():
     reg = Registry()
@@ -166,7 +157,7 @@ def test_adapter_two_sources():
             self.alpha = alpha
             self.beta = beta
 
-    reg.register_adapter([IAlpha, IBeta], ITarget, '', Adapted)
+    reg.register([IAlpha, IBeta], ITarget, '', Adapted)
 
     alpha = Alpha()
     beta = Beta()
@@ -180,3 +171,9 @@ def test_adapter_two_sources():
     assert isinstance(adapted, Adapted)
     assert adapted.alpha is alpha
     assert adapted.beta is beta
+
+    adapted = ITarget.adapter(alpha, beta, registry=reg)
+    assert isinstance(adapted, Adapted)
+    assert adapted.alpha is alpha
+    assert adapted.beta is beta
+    
