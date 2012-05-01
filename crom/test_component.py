@@ -1,4 +1,4 @@
-from .component import InstanceRegistry
+from .component import InstanceRegistry, Registry
 from crom import Interface, implements
 
 class IAlpha(Interface):
@@ -40,4 +40,36 @@ def test_instance_two_sources():
     alpha = Alpha()
     beta = Beta()
     assert reg.lookup([alpha, beta], ITarget, '') is foo
+
+def test_instance_class_based_registration():
+    reg = InstanceRegistry()
+    foo = object()
+    reg.register((Alpha,), ITarget, '', foo)
+
+    alpha = Alpha()
+    assert reg.lookup([alpha], ITarget, '') is foo
+    
+def test_utility_no_source():
+    reg = Registry()
+    foo = object()
+    reg.register_utility((), ITarget, '', foo)
+    assert reg.get_utility([], ITarget, '') is foo
+
+def test_utility_one_source():
+    reg = Registry()
+    foo = object()
+    reg.register_utility([IAlpha], ITarget, '', foo)
+
+    alpha = Alpha()
+    assert reg.get_utility([alpha], ITarget, '') is foo
+
+def test_utility_two_sources():
+    reg = Registry()
+    foo = object()
+    reg.register_utility([IAlpha, IBeta], ITarget, '', foo)
+
+    alpha = Alpha()
+    beta = Beta()
+    assert reg.get_utility([alpha, beta], ITarget, '') is foo
+    
 
