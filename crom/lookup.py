@@ -32,5 +32,5 @@ def adapter_lookup(iface, *args, **kw):
     if len(args) == 1 and iface.providedBy(args[0]):
         return args[0]
     registry = kw.pop('registry', None)
-    return lookup(iface, registry.get_adapter, 'adapter', *args, **kw)
+    return lookup(iface, registry.adapt, 'adapter', *args, **kw)
 

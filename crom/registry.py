@@ -23,7 +23,7 @@ class Registry(object):
     def lookup(self, obs, target, name):
         return self.registry.lookup(map(providedBy, obs), target, name)
 
-    def get_adapter(self, obs, target, name):
+    def adapt(self, obs, target, name):
         # self-adaptation
         if len(obs) == 1 and target.providedBy(obs[0]):
             return obs[0]

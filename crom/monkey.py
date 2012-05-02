@@ -3,7 +3,7 @@ from lookup import component_lookup, adapter_lookup
 
 def safe():
     InterfaceClass.component = component_lookup
-    InterfaceClass.adapter = adapter_lookup
+    InterfaceClass.adapt = adapter_lookup
 
 def incompat():
     safe()
@@ -14,7 +14,7 @@ def incompat():
 
 def revert_safe():
     del InterfaceClass.component
-    del InterfaceClass.adapter
+    del InterfaceClass.adapt
     
 def revert_incompat():
     revert_safe()

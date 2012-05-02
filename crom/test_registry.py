@@ -108,8 +108,8 @@ def test_adapter_no_source():
     
     reg.register((), ITarget, '', factory)
 
-    assert reg.get_adapter([], ITarget, '') is foo
-    assert ITarget.adapter(registry=reg) is foo
+    assert reg.adapt([], ITarget, '') is foo
+    assert ITarget.adapt(registry=reg) is foo
     assert ITarget(registry=reg) is foo
     
 def test_adapter_one_source():
@@ -123,13 +123,13 @@ def test_adapter_one_source():
     reg.register([IAlpha], ITarget, '', Adapted)
     
     alpha = Alpha()
-    adapted = reg.get_adapter([alpha], ITarget, '')
+    adapted = reg.adapt([alpha], ITarget, '')
     assert isinstance(adapted, Adapted)
     assert adapted.context is alpha
     adapted = ITarget(alpha, registry=reg)
     assert isinstance(adapted, Adapted)
     assert adapted.context is alpha
-    adapted = ITarget.adapter(alpha, registry=reg)
+    adapted = ITarget.adapt(alpha, registry=reg)
     assert isinstance(adapted, Adapted)
     assert adapted.context is alpha
     
@@ -144,14 +144,14 @@ def test_adapter_to_itself():
             self.context = context
 
     # behavior without any registration; we get the object back
-    assert reg.get_adapter([alpha], IAlpha, '') is alpha
+    assert reg.adapt([alpha], IAlpha, '') is alpha
     assert IAlpha(alpha, registry=reg) is alpha
     # it works even without registry
     assert IAlpha(alpha) is alpha
     
     # behavior is the same with registration
     reg.register([IAlpha], IAlpha, '', Adapter)
-    assert reg.get_adapter([alpha], IAlpha, '') is alpha
+    assert reg.adapt([alpha], IAlpha, '') is alpha
     assert IAlpha(alpha, registry=reg) is alpha
     assert IAlpha(alpha) is alpha
     
@@ -168,7 +168,7 @@ def test_adapter_two_sources():
 
     alpha = Alpha()
     beta = Beta()
-    adapted = reg.get_adapter([alpha, beta], ITarget, '')
+    adapted = reg.adapt([alpha, beta], ITarget, '')
 
     assert isinstance(adapted, Adapted)
     assert adapted.alpha is alpha
@@ -179,7 +179,7 @@ def test_adapter_two_sources():
     assert adapted.alpha is alpha
     assert adapted.beta is beta
 
-    adapted = ITarget.adapter(alpha, beta, registry=reg)
+    adapted = ITarget.adapt(alpha, beta, registry=reg)
     assert isinstance(adapted, Adapted)
     assert adapted.alpha is alpha
     assert adapted.beta is beta
