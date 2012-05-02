@@ -3,7 +3,7 @@ from zope.interface.interfaces import ISpecification
 from zope.interface.adapter import AdapterRegistry
 from ._compat import CLASS_TYPES
 from .interfaces import IRegistry
-from . import implements
+from .directives import implements
 
 @implements(IRegistry)
 class Registry(object):
