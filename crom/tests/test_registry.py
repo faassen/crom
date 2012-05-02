@@ -1,7 +1,7 @@
 import py.test
-from .registry import Registry
+from crom.registry import Registry
 from crom import Interface, implements, ComponentLookupError
-from . import monkey
+from crom import monkey
 
 class IAlpha(Interface):
     pass
@@ -218,7 +218,7 @@ def test_adapter_with_wrong_args():
         ITarget(alpha, registry=reg)
 
     assert str(e.value) == ("__init__() takes exactly 1 argument (2 given) "
-                            "(<class 'crom.test_registry.Adapter'>)")
+                            "(<class 'test_registry.Adapter'>)")
     
 def test_extra_kw():
     reg = Registry()
