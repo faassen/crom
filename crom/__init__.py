@@ -7,7 +7,9 @@ from .registry import Registry
 from .directives import sources, target, name, registry, implements
 from .grokkers import component, adapter
 
-from .current import get_lookup, get_registry, set_registry, clear_registry
+from .current import (get_lookup, get_lookup_stack,
+                      get_registry, set_registry,
+                      clear_registry)
 from .config import grok, configure
 
 # we do the absolutely compatible monkey patches , not breaking

@@ -71,3 +71,21 @@ class IRegistry(ILookup):
         The component is a python object (function, class, instance) that is
         registered.
         """
+
+class ICurrent(Interface):
+    """API of the current module."""
+    def set_registry(registry):
+        pass
+
+    def get_registry():
+        pass
+
+    def clear_registry():
+        pass
+
+    def get_lookup():
+        pass
+    
+    def get_lookup_stack():
+        pass
+    

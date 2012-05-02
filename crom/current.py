@@ -27,18 +27,20 @@ def get_registry():
 def set_registry(registry):
     global global_registry
     global_registry = registry
-    set_lookup(registry)
+    _set_lookup_stack(registry)
 
 def clear_registry():
     global_lookup = None
     global_registry = None
     
-def get_lookup():
-    return global_lookup
+def get_lookup_stack():
+    return global_lookup_stack
 
-def set_lookup(lookup):
-    global global_lookup
-    global_lookup = LookupStack(lookup)
+get_lookup = get_lookup_stack
 
-global_lookup = None
+def _set_lookup_stack(lookup):
+    global global_lookup_stack
+    global_lookup_stack = LookupStack(lookup)
+
+global_lookup_stack = None
 global_registry = None
