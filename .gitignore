@@ -37,4 +37,6 @@ develop-eggs
 *.egg-info
 .installed.cfg
 doc/_build
+.mr.developer.cfg
+dev
 
