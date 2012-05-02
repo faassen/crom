@@ -31,7 +31,7 @@ def test_component_no_source():
     foo = object()
     reg.register((), ITarget, '', foo)
     assert reg.lookup([], ITarget, '') is foo
-    assert ITarget.component(registry=reg) is foo
+    assert ITarget.component(lookup=reg) is foo
     
 def test_component_one_source():
     reg = Registry()
@@ -40,7 +40,7 @@ def test_component_one_source():
 
     alpha = Alpha()
     assert reg.lookup([alpha], ITarget, '') is foo
-    assert ITarget.component(alpha, registry=reg) is foo
+    assert ITarget.component(alpha, lookup=reg) is foo
     
 def test_component_two_sources():
     reg = Registry()
@@ -50,7 +50,7 @@ def test_component_two_sources():
     alpha = Alpha()
     beta = Beta()
     assert reg.lookup([alpha, beta], ITarget, '') is foo
-    assert ITarget.component(alpha, beta, registry=reg) is foo
+    assert ITarget.component(alpha, beta, lookup=reg) is foo
     
 def test_component_class_based_registration():
     reg = Registry()
@@ -59,7 +59,7 @@ def test_component_class_based_registration():
 
     alpha = Alpha()
     assert reg.lookup([alpha], ITarget, '') is foo
-    assert ITarget.component(alpha, registry=reg) is foo
+    assert ITarget.component(alpha, lookup=reg) is foo
     
 def test_component_inheritance():
     reg = Registry()
@@ -76,7 +76,7 @@ def test_component_inheritance():
     delta = Delta()
     
     assert reg.lookup([delta], ITarget, '') is foo
-    assert ITarget.component(delta, registry=reg) is foo
+    assert ITarget.component(delta, lookup=reg) is foo
     
 def test_component_not_found():
     reg = Registry()
@@ -84,9 +84,9 @@ def test_component_not_found():
     assert reg.lookup([], ITarget, '') is None
     alpha = Alpha()
     assert reg.lookup([alpha], ITarget, '') is None
-    assert ITarget.component(alpha, registry=reg, default=None) is None
+    assert ITarget.component(alpha, lookup=reg, default=None) is None
     with py.test.raises(ComponentLookupError):
-        ITarget.component(alpha, registry=reg)
+        ITarget.component(alpha, lookup=reg)
 
 def test_component_to_itself():
     reg = Registry()
@@ -97,7 +97,7 @@ def test_component_to_itself():
     reg.register([IAlpha], IAlpha, '', foo)
 
     assert reg.lookup([alpha], IAlpha, '') is foo
-    assert IAlpha.component(alpha, registry=reg) is foo
+    assert IAlpha.component(alpha, lookup=reg) is foo
     
 def test_adapter_no_source():
     reg = Registry()
@@ -109,8 +109,8 @@ def test_adapter_no_source():
     reg.register((), ITarget, '', factory)
 
     assert reg.adapt([], ITarget, '') is foo
-    assert ITarget.adapt(registry=reg) is foo
-    assert ITarget(registry=reg) is foo
+    assert ITarget.adapt(lookup=reg) is foo
+    assert ITarget(lookup=reg) is foo
     
 def test_adapter_one_source():
     reg = Registry()
@@ -126,10 +126,10 @@ def test_adapter_one_source():
     adapted = reg.adapt([alpha], ITarget, '')
     assert isinstance(adapted, Adapted)
     assert adapted.context is alpha
-    adapted = ITarget(alpha, registry=reg)
+    adapted = ITarget(alpha, lookup=reg)
     assert isinstance(adapted, Adapted)
     assert adapted.context is alpha
-    adapted = ITarget.adapt(alpha, registry=reg)
+    adapted = ITarget.adapt(alpha, lookup=reg)
     assert isinstance(adapted, Adapted)
     assert adapted.context is alpha
     
@@ -145,14 +145,14 @@ def test_adapter_to_itself():
 
     # behavior without any registration; we get the object back
     assert reg.adapt([alpha], IAlpha, '') is alpha
-    assert IAlpha(alpha, registry=reg) is alpha
+    assert IAlpha(alpha, lookup=reg) is alpha
     # it works even without registry
     assert IAlpha(alpha) is alpha
     
     # behavior is the same with registration
     reg.register([IAlpha], IAlpha, '', Adapter)
     assert reg.adapt([alpha], IAlpha, '') is alpha
-    assert IAlpha(alpha, registry=reg) is alpha
+    assert IAlpha(alpha, lookup=reg) is alpha
     assert IAlpha(alpha) is alpha
     
 def test_adapter_two_sources():
@@ -174,12 +174,12 @@ def test_adapter_two_sources():
     assert adapted.alpha is alpha
     assert adapted.beta is beta
 
-    adapted = ITarget(alpha, beta, registry=reg)
+    adapted = ITarget(alpha, beta, lookup=reg)
     assert isinstance(adapted, Adapted)
     assert adapted.alpha is alpha
     assert adapted.beta is beta
 
-    adapted = ITarget.adapt(alpha, beta, registry=reg)
+    adapted = ITarget.adapt(alpha, beta, lookup=reg)
     assert isinstance(adapted, Adapted)
     assert adapted.alpha is alpha
     assert adapted.beta is beta
@@ -187,15 +187,15 @@ def test_adapter_two_sources():
 def test_default():
     reg = Registry()
 
-    assert ITarget.component(registry=reg, default='blah') == 'blah'
+    assert ITarget.component(lookup=reg, default='blah') == 'blah'
 
 def test_name():
     reg = Registry()
     foo = object()
     reg.register([Alpha], ITarget, 'x', foo)
     alpha = Alpha()
-    assert ITarget.component(alpha, registry=reg, name='x') is foo
-    assert ITarget.component(alpha, registry=reg, default=None) is None
+    assert ITarget.component(alpha, lookup=reg, name='x') is foo
+    assert ITarget.component(alpha, lookup=reg, default=None) is None
     
 def test_non_adapter_looked_up_as_adapter():
     reg = Registry()
@@ -203,7 +203,7 @@ def test_non_adapter_looked_up_as_adapter():
     reg.register([Alpha], ITarget, '', foo)
     alpha = Alpha()
     with py.test.raises(TypeError):
-        ITarget(alpha, registry=reg)
+        ITarget(alpha, lookup=reg)
     
 def test_adapter_with_wrong_args():
     class Adapter(object):
@@ -215,7 +215,7 @@ def test_adapter_with_wrong_args():
     alpha = Alpha()
     
     with py.test.raises(TypeError) as e:
-        ITarget(alpha, registry=reg)
+        ITarget(alpha, lookup=reg)
 
     assert str(e.value) == ("__init__() takes exactly 1 argument (2 given) "
                             "(<class 'crom.tests.test_registry.Adapter'>)")
@@ -228,5 +228,5 @@ def test_extra_kw():
     alpha = Alpha()
     
     with py.test.raises(TypeError) as e:
-        ITarget.component(alpha, registry=reg, extra="illegal")
+        ITarget.component(alpha, lookup=reg, extra="illegal")
     assert str(e.value) == 'Illegal extra keyword arguments: extra'

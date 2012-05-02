@@ -2,7 +2,7 @@ from zope.interface import providedBy, implementedBy
 from zope.interface.interfaces import ISpecification
 from zope.interface.adapter import AdapterRegistry
 from ._compat import CLASS_TYPES
-from .interfaces import IRegistry
+from .interfaces import IRegistry, ILookup, ILookupChain
 from .directives import implements
 
 @implements(IRegistry)
@@ -37,8 +37,21 @@ class Registry(object):
             return adapter(*obs)
         except TypeError, e:
             raise TypeError(str(e) + " (%s)" % adapter)
-    
-    def get_subscribed(self):
-        pass
 
+@implements(ILookupChain)
+class LookupChain(object):    
+    def __init__(self, lookup, next):
+        self.lookup = lookup
+        self.next = next
 
+    def lookup(self, obs, target, name):
+        result = self.lookup.lookup(obs, target, name)
+        if result is not None:
+            return result
+        return self.next.lookup(obs, target, name)
+        
+    def adapt(self, obs, target, name):
+        result = self.lookup.adapt(obs, target, name)
+        if result is not None:
+            return result
+        return self.next.adapt(obs, target, name)

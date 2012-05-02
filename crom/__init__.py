@@ -3,10 +3,11 @@ from grokker import (Directive, ArgsDirective, grokker, directive)
 from zope.interface import Interface
 from zope.interface.interfaces import ComponentLookupError
 
-from crom.directives import sources, target, name, registry, implements
-from crom.grokkers import component, adapter
+from .registry import Registry
+from .directives import sources, target, name, registry, implements
+from .grokkers import component, adapter
 
-from .current import get_current
+from .current import get_lookup, get_registry, set_registry, clear_registry
 from .config import grok, configure
 
 # we do the absolutely compatible monkey patches , not breaking

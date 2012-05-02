@@ -3,10 +3,12 @@ from crom import monkey
 
 def setup_function(method):
     monkey.incompat()
-
+    crom.set_registry(crom.Registry())
+    
 def teardown_function(method):
     monkey.revert_incompat()
-
+    crom.clear_registry()
+    
 def test_component():
     from .fixtures import component as module
     # grok the component module

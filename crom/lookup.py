@@ -1,9 +1,9 @@
 from zope.interface.interfaces import ComponentLookupError
-from .current import get_current
+from .current import get_lookup
 
 SENTINEL = object()
 
-def lookup(iface, lookup_func, component_name, *args, **kw):
+def do_lookup(iface, lookup_func, component_name, *args, **kw):
     sources = args
     target = iface
     name = kw.pop('name', '')
@@ -21,22 +21,18 @@ def lookup(iface, lookup_func, component_name, *args, **kw):
         "Could not find %s from sources %s to target %s." %
         (component_name, sources, target))
 
-def get_registry(kw):
-    registry = kw.pop('registry', None)
-    if registry is None:
-        registry = get_current()
-    return registry
+def find_lookup(kw):
+    lookup = kw.pop('lookup', None)
+    if lookup is None:
+        lookup = get_lookup()
+    return lookup
 
 # iface will serve as 'self' when monkey-patched onto InterfaceClass
 def component_lookup(iface, *args, **kw):
-    registry = get_registry(kw)
-    return lookup(iface, registry.lookup, 'component', *args, **kw)
+    return do_lookup(
+        iface, find_lookup(kw).lookup, 'component', *args, **kw)
 
 def adapter_lookup(iface, *args, **kw):
-    # shortcut bail out necessary to make this work without known registry
-    # XXX can go away once there's a current fallback registry
-    if len(args) == 1 and iface.providedBy(args[0]):
-        return args[0]
-    registry = get_registry(kw)
-    return lookup(iface, registry.adapt, 'adapter', *args, **kw)
+    return do_lookup(
+        iface, find_lookup(kw).adapt, 'adapter', *args, **kw)
 

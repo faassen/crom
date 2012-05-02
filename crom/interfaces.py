@@ -1,26 +1,6 @@
-from zope.interface import Interface
+from zope.interface import Interface, Attribute
 
-class IRegistry(Interface):
-    def register(sources, target, name, component):
-        """Register a component with the registry.
-
-        sources is a list of 0 to n interfaces or classes that
-        the component is registered for. If multiple sources are listed,
-        a registration is made for that combination of sources.
-
-        The target is an interface by which the component can be
-        looked up.  The registered object should either provide that
-        interface directly, or in the case of an adapter, produce an
-        instance that provides that interface when called.
-
-        The name the name under which the component should be
-        registered. This can be used to distinguish different
-        registrations from each other.
-        
-        The component is a python object (function, class, instance) that is
-        registered.
-        """
-
+class ILookup(Interface):
     def lookup(obs, target, name):
         """Look up a component in the registry.
 
@@ -50,4 +30,44 @@ class IRegistry(Interface):
         obs given as arguments. The resulting instance should provide
         the target interface (although no such checking is done).
         """
-    
+
+class ILookupChain(ILookup):
+    lookup = Attribute("The first ILookup to look in.")
+    next = Attribute("The next ILookup in the chain.")
+
+class ILookupStack(ILookup):
+    def push(lookup):
+        """Push another lookup upon the stack.
+        """
+
+    def pop():
+        """Pop the top lookup from the stack.
+
+        If the stack only has a single lookup left, raise a
+        LookupStackError.
+        """
+
+class LookupStackError(IndexError):
+    """Raised when trying to pop the base lookup from a ILookupStack
+    """
+
+class IRegistry(ILookup):
+    def register(sources, target, name, component):
+        """Register a component with the registry.
+
+        sources is a list of 0 to n interfaces or classes that
+        the component is registered for. If multiple sources are listed,
+        a registration is made for that combination of sources.
+
+        The target is an interface by which the component can be
+        looked up.  The registered object should either provide that
+        interface directly, or in the case of an adapter, produce an
+        instance that provides that interface when called.
+
+        The name the name under which the component should be
+        registered. This can be used to distinguish different
+        registrations from each other.
+        
+        The component is a python object (function, class, instance) that is
+        registered.
+        """
