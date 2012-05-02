@@ -218,7 +218,7 @@ def test_adapter_with_wrong_args():
         ITarget(alpha, registry=reg)
 
     assert str(e.value) == ("__init__() takes exactly 1 argument (2 given) "
-                            "(<class 'test_registry.Adapter'>)")
+                            "(<class 'crom.tests.test_registry.Adapter'>)")
     
 def test_extra_kw():
     reg = Registry()
