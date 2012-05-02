@@ -1,6 +1,9 @@
 from .registry import Registry, LookupChain
 from .directives import implements
-from .interfaces import ILookupStack, LookupStackError
+from .interfaces import ILookupStack, LookupStackError, ICurrent
+from zope.interface.declarations import moduleProvides
+
+moduleProvides(ICurrent)
 
 @implements(ILookupStack)
 class LookupStack(object):

@@ -74,18 +74,50 @@ class IRegistry(ILookup):
 
 class ICurrent(Interface):
     """API of the current module."""
+    def init_registry():
+        """Initializes the global registry.
+
+        It can now receive registrations.
+        
+        This initializes global lookup and registration behavior.
+
+        This means that interface-based lookup lookup behavior
+        (``.component``, ``.adapt``, and ``__call__`` if enabled),
+        will now work without passing an explicit ``lookup`` argument.
+
+        This also means that the component registration decorators
+        will work without having to use the @registry decorator.
+        """
+        
     def set_registry(registry):
-        pass
+        """Set the global registry to registry.
+
+        Needs to be done once when the application starts up (or use
+        ``init_registry``).
+
+        This initializes global lookup and registration behavior.
+        
+        registry should provide IRegistry.
+        """
 
     def get_registry():
-        pass
+        """Get the global registry.
+        """
 
     def clear_registry():
-        pass
+        """Clear the global registry.
 
+        This disables the global lookup and registration behavior.
+        """
+        
     def get_lookup():
-        pass
+        """Get the currently set up ILookup instance.
+        """
     
     def get_lookup_stack():
-        pass
+        """Get the ILookupStack.
+
+        Can be used to push new ILookup instances onto the stack,
+        or pop them again.
+        """
     
