@@ -20,3 +20,7 @@ def test_component():
     assert isinstance(adapted, module.Adapter)
     assert adapted.context is source
 
+# XXX check the situation where a registry is passed
+# that is an IRegistry instance. Will it conflict with
+# the same registration on that registry correctly?
+    
