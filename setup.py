@@ -12,6 +12,7 @@ setup(name='crom',
       zip_safe=False,
       install_requires=['setuptools',
                         'zope.interface',
+                        'zope.configuration',
                         'venusian',
                         'grokker'],
       extras_require = dict(

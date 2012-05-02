@@ -1,4 +1,5 @@
 from grokker import validator
+from zope.interface.interfaces import IInterface
 
 def isinterface(value):
     return IInterface.providedBy(value)

@@ -2,6 +2,6 @@ from .registry import Registry
 
 global_registry = Registry()
 
-def get_current_registry():
+def get_current():
     return global_registry
 
