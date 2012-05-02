@@ -1,5 +1,5 @@
 from zope.interface.interface import InterfaceClass
-from lookup import component_lookup, adapter_lookup
+from .extiface import component_lookup, adapter_lookup
 
 def safe():
     InterfaceClass.component = component_lookup
