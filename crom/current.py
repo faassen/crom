@@ -27,6 +27,9 @@ class LookupStack(object):
 def get_registry():
     return global_registry
 
+def init_registry():
+    set_registry(Registry())
+    
 def set_registry(registry):
     global global_registry
     global_registry = registry

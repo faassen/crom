@@ -3,7 +3,7 @@ from crom import monkey
 
 def setup_function(method):
     monkey.incompat()
-    crom.set_registry(crom.Registry())
+    crom.init_registry()
     
 def teardown_function(method):
     monkey.revert_incompat()
