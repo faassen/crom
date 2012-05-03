@@ -1,9 +1,11 @@
+import threading
+
 from .registry import Registry
 from .directives import implements
 from .interfaces import ICurrent
 
 @implements(ICurrent)
-class Current(object):
+class Current(threading.local):
     def __init__(self):
         self.teardown()
 
