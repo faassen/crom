@@ -35,22 +35,6 @@ class ILookupChain(ILookup):
     lookup = Attribute("The first ILookup to look in.")
     next = Attribute("The next ILookup in the chain.")
 
-class ILookupStack(ILookup):
-    def push(lookup):
-        """Push another lookup upon the stack.
-        """
-
-    def pop():
-        """Pop the top lookup from the stack.
-
-        If the stack only has a single lookup left, raise a
-        LookupStackError.
-        """
-
-class LookupStackError(IndexError):
-    """Raised when trying to pop the base lookup from a ILookupStack
-    """
-
 class IRegistry(ILookup):
     def register(sources, target, name, component):
         """Register a component with the registry.
@@ -73,51 +57,41 @@ class IRegistry(ILookup):
         """
 
 class ICurrent(Interface):
-    """API of the current module."""
-    def init_registry():
-        """Initializes the global registry.
+    """The current global registry and lookup.
 
-        It can now receive registrations.
-        
-        This initializes global lookup and registration behavior.
+    The current can be set up once when the application starts up, by calling
+    setup().
 
-        This means that interface-based lookup lookup behavior
-        (``.component``, ``.adapt``, and ``__call__`` if enabled),
-        will now work without passing an explicit ``lookup`` argument.
-
-        This also means that the component registration decorators
-        will work without having to use the @registry decorator.
-        """
-        
-    def set_registry(registry):
-        """Set the global registry to registry.
-
-        Needs to be done once when the application starts up (or use
-        ``init_registry``).
-
-        This initializes global lookup and registration behavior.
-        
-        registry should provide IRegistry.
-        """
-
-    def get_registry():
-        """Get the global registry.
-        """
-
-    def clear_registry():
-        """Clear the global registry.
-
-        This disables the global lookup and registration behavior.
-        """
-        
-    def get_lookup():
-        """Get the currently set up ILookup instance.
-        """
+    You can also do a custom setup during startup by setting the
+    registry attribute to some IRegistry instance yourself. You will
+    also need to set up the lookup attribute in this case.
     
-    def get_lookup_stack():
-        """Get the ILookupStack.
+    If not set up, the current will contain a implementations of
+    IRegistry and ILookup which will raise exceptions when you try to
+    register or look up.
 
-        Can be used to push new ILookup instances onto the stack,
-        or pop them again.
+    During runtime you can vary what will be used to look up
+    components by modifying the lookup attribute. This lookup
+    attribute is managed separately per thread.
+
+    The ChainLookup can be used for instance to wrap the registry
+    in another one, thereby installing another lookup strategy.
+
+    Once the registry is set up, the component registration decorators
+     will work without having to use the @registry decorator.
+
+    Once the lookup is set up, interface-based lookup lookup behavior
+    (``.component``, ``.adapt``, and ``__call__`` if enabled), will
+    now work without passing an explicit ``lookup`` argument.
+    """
+
+    registry = Attribute("IRegistry")
+    lookup = Attribute("ILookup")
+
+    def setup():
+        """Set up a standard registry and lookup.
         """
-    
+
+    def teardown():
+        """Clears the currently set registry and lookup. Make it failing again.
+        """

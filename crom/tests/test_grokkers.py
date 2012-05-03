@@ -3,11 +3,11 @@ from crom import monkey
 
 def setup_function(method):
     monkey.incompat()
-    crom.init_registry()
+    crom.setup()
     
 def teardown_function(method):
     monkey.revert_incompat()
-    crom.clear_registry()
+    crom.teardown()
     
 def test_component():
     from .fixtures import component as module
@@ -24,3 +24,4 @@ def test_component():
 # that is an IRegistry instance. Will it conflict with
 # the same registration on that registry correctly?
     
+# need to add tests for stackable lookup
