@@ -1,12 +1,11 @@
-from grokker import (Directive, ArgsDirective, grokker, directive)
-
 from zope.interface import Interface
 from zope.interface.interfaces import ComponentLookupError
 
 from .registry import Registry
+from .lookup import ListLookup, ChainLookup
+
 from .directives import sources, target, name, registry, implements
 from .grokkers import component, adapter
-from .lookup import ListLookup, ChainLookup
 
 from .current import current
 setup = current.setup
@@ -20,3 +19,10 @@ from .config import grok, configure
 # addition)
 from . import monkey
 monkey.safe()
+
+__all__ = ["Interface", "ComponentLookupError",
+           "Registry", "ListLookup", "ChainLookup",
+           "sources", "target", "name", "registry", "implements",
+           "component", "adapter",
+           "current", "setup", "teardown", "grok", "configure"]
+
