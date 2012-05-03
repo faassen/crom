@@ -5,7 +5,7 @@ from ._compat import CLASS_TYPES
 from .interfaces import IRegistry, ILookup, ILookupChain
 from .directives import implements
 
-@implements(IRegistry)
+@implements(IRegistry, ILookup)
 class Registry(object):
     def __init__(self):
         self.registry = AdapterRegistry()

@@ -35,7 +35,7 @@ class ILookupChain(ILookup):
     lookup = Attribute("The first ILookup to look in.")
     next = Attribute("The next ILookup in the chain.")
 
-class IRegistry(ILookup):
+class IRegistry(Interface):
     def register(sources, target, name, component):
         """Register a component with the registry.
 
