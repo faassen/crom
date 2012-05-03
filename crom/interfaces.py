@@ -31,7 +31,7 @@ class ILookup(Interface):
         the target interface (although no such checking is done).
         """
 
-class ILookupChain(ILookup):
+class IChainLookup(ILookup):
     lookup = Attribute("The first ILookup to look in.")
     next = Attribute("The next ILookup in the chain.")
 

@@ -6,6 +6,7 @@ from zope.interface.interfaces import ComponentLookupError
 from .registry import Registry
 from .directives import sources, target, name, registry, implements
 from .grokkers import component, adapter
+from .lookup import ListLookup, ChainLookup
 
 from .current import current
 setup = current.setup

@@ -1,4 +1,4 @@
-from .registry import Registry, LookupChain
+from .registry import Registry
 from .directives import implements
 from .interfaces import ICurrent
 
