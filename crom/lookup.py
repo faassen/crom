@@ -27,7 +27,7 @@ def ListLookup(object):
     def adapt(self, obs, target, name):
         for lookup in self.lookups:
             result = self.lookup.adapt(obs, target, name)
-            if reuslt is not None:
+            if result is not None:
                 return result
         return None
     
