@@ -56,42 +56,65 @@ class IRegistry(Interface):
         registered.
         """
 
-class ICurrent(Interface):
-    """The current global registry and lookup.
+class ICromInterface(Interface):
+    pass
 
-    The current can be set up once when the application starts up, by calling
-    setup().
+class IImplicit(Interface):
+    """Implicit global registry and lookup.
 
-    You can also do a custom setup during startup by setting the
-    registry attribute to some IRegistry instance yourself. You will
-    also need to set up the lookup attribute in this case.
+    Crom supports an implicit registry and lookup to be set up
+    globally.  Registration of components using grokkers will use the
+    implicit global IRegistry instance for registration. Lookups using
+    the ICromInterface extension to interface will use the global
+    ILookup instance.
+
+    The global registry is normally only set up once per application,
+    during startup time. It can be set up to the default crom registry
+    using the initialize method. This also sets up a lookup for this
+    registry. Afterwards, the registry can be accessed through the
+    ``registry`` property (but cannot be set through this).
+
+    In addition to the implicit global registry, an application can
+    also use explicit registry objects. The registry to use can be set
+    explicitly per registration, using the @registry decorator when
+    registering a component using a grokker.
     
-    If not set up, the current will contain a implementations of
-    IRegistry and ILookup which will raise exceptions when you try to
-    register or look up.
+    The global implicit lookup can be accessed through the ``lookup``
+    property. The global implicit lookup is used in the ICromInterface
+    extensions to Interface to look up components. If you don't want
+    to use the global implicit lookup with this API, you can pass an
+    explicit ``lookup`` argument instead.
+    
+    Changing the implicit lookup during run-time is done by simply
+    assigning to it. Typically you'd assign an ILookup constructed
+    using crom.ListLookup or crom.ChainLookup. This way a lookup can
+    look for a component in one registry first, and then fall back to
+    another registry, etc.
 
-    During runtime you can vary what will be used to look up
-    components by modifying the lookup attribute. This lookup
-    attribute is managed separately per thread.
-
-    The ChainLookup can be used for instance to wrap the registry
-    in another one, thereby installing another lookup strategy.
-
-    Once the registry is set up, the component registration decorators
-     will work without having to use the @registry decorator.
-
-    Once the lookup is set up, interface-based lookup lookup behavior
-    (``.component``, ``.adapt``, and ``__call__`` if enabled), will
-    now work without passing an explicit ``lookup`` argument.
+    To change the lookup back to a lookup in the global implicit
+    registry, call ``reset_lookup``.
+    
+    The implicit lookup is thread-local: each thread has a separate
+    implicit global lookup.
     """
 
-    registry = Attribute("IRegistry")
-    lookup = Attribute("ILookup")
-
-    def setup():
-        """Set up a standard registry and lookup.
+    registry = Attribute("IRegistry. Read-only.")
+    lookup = Attribute("ILookup. Can be assigned")
+    base_lookup = Attribute("ILookup based on IRegistry")
+    
+    def initialize():
+        """Set up a standard global implicit registry and lookup.
         """
 
-    def teardown():
-        """Clears the currently set registry and lookup. Make it failing again.
+    def initialize_with_registry(registry):
+        """Set up global implicit registry and lookup according to argument.
         """
+
+    def clear():
+        """Clear global implicit registry and lookup.
+        """
+
+    def reset_lookup():
+        """Reset global implicit lookup to base_lookup.
+        """
+    

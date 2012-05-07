@@ -1,6 +1,9 @@
 import threading
 from .registry import Registry
+from .directives import implements
+from .interfaces import IImplicit
 
+@implements(IImplicit)
 class Implicit(object):
     def __init__(self):
         self._registry = None
