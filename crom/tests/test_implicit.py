@@ -1,14 +1,17 @@
 import threading
-from crom.implicit import implicit
+from crom import implicit
+
+def setup_module():
+    implicit.initialize()
+
+def teardown_module():
+    implicit.clear()
 
 def test_lookup_in_main():
-    implicit.initialize()
-
     assert implicit.lookup is implicit.registry
+    assert implicit.base_lookup is implicit.lookup
     
 def test_lookup_in_thread_uses_default():
-    implicit.initialize()
-    
     log = []
     def f():
         log.append(implicit.lookup)
@@ -20,8 +23,6 @@ def test_lookup_in_thread_uses_default():
     assert log[0] is implicit.registry
 
 def test_changed_lookup_in_thread_doesnt_affect_main():
-    implicit.initialize()
-
     # a different ILookup
     # (we don't actually fulfill the interface as that's not needed for
     # this test)
@@ -39,3 +40,23 @@ def test_changed_lookup_in_thread_doesnt_affect_main():
     assert log[0] is different_lookup
     assert implicit.lookup is implicit.registry
     assert implicit.lookup is implicit.base_lookup
+
+def test_implicit_clear():
+    implicit.clear()
+    
+    assert implicit.registry is None
+    assert implicit.lookup is None
+    assert implicit.base_lookup is None
+    
+    log = []
+    def f():
+        log.append(implicit.registry)
+        log.append(implicit.lookup)
+        log.append(implicit.base_lookup)
+        
+    thread = threading.Thread(target=f)
+    thread.start()
+    thread.join()
+    assert log[0] is None
+    assert log[1] is None
+    assert log[2] is None

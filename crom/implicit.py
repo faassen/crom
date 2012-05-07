@@ -22,8 +22,8 @@ class Implicit(object):
         
     def clear(self):
         self._registry = None
-        self.local.lookup = None
-
+        self.local = Local(lookup=None)
+    
     @property
     def registry(self):
         return self._registry
