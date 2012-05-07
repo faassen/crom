@@ -1,5 +1,4 @@
 import threading
-from zope.configuration.config import ConfigurationExecutionError
 import py.test
 
 from crom import implicit, monkey
@@ -49,4 +48,4 @@ def test_no_implicit_lookup():
 
     # we try to adapt without an explicit lookup, this will fail
     with py.test.raises(NoImplicitLookupError):
-        adapted = module.ITarget(source)
+        module.ITarget(source)
