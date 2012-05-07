@@ -60,3 +60,12 @@ def test_implicit_clear():
     assert log[0] is None
     assert log[1] is None
     assert log[2] is None
+
+def test_implicit_reset_lookup_main():
+    other_lookup = object()
+    implicit.lookup = other_lookup
+    assert implicit.lookup is other_lookup
+    assert implicit.lookup is not implicit.registry
+    implicit.reset_lookup()
+    assert implicit.lookup is implicit.registry
+    
