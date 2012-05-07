@@ -1,10 +1,10 @@
 import threading
 from crom import implicit
 
-def setup_module():
+def setup_function(f):
     implicit.initialize()
 
-def teardown_module():
+def teardown_function(f):
     implicit.clear()
 
 def test_lookup_in_main():
