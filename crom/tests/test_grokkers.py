@@ -21,5 +21,3 @@ def test_component():
 # XXX check the situation where a registry is passed
 # that is an IRegistry instance. Will it conflict with
 # the same registration on that registry correctly?
-    
-# need to add tests for stackable lookup

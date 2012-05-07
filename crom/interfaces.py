@@ -117,4 +117,10 @@ class IImplicit(Interface):
     def reset_lookup():
         """Reset global implicit lookup to base_lookup.
         """
-    
+   
+class NoImplicitRegistryError(Exception):
+    pass
+
+class NoImplicitLookupError(Exception):
+    pass
+

@@ -1,5 +1,6 @@
 from zope.interface.interfaces import ComponentLookupError
 from .implicit import implicit
+from .interfaces import NoImplicitLookupError
 
 SENTINEL = object()
 
@@ -24,6 +25,10 @@ def do_lookup(iface, lookup_func, component_name, *args, **kw):
 def find_lookup(kw):
     lookup = kw.pop('lookup', None)
     if lookup is None:
+        if implicit.lookup is None:
+            raise NoImplicitLookupError(
+                "Cannot lookup without explicit lookup argument "
+                "because implicit lookup is not configured.")
         lookup = implicit.lookup
     return lookup
 

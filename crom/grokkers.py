@@ -1,7 +1,7 @@
 from grokker import grokker, directive
 from .directives import sources, target, name, registry
 from .implicit import implicit
-from .interfaces import IRegistry
+from .interfaces import IRegistry, NoImplicitRegistryError
 
 @grokker
 @directive(sources)
@@ -12,6 +12,11 @@ def component(scanner, pyname, obj, sources, target, name='',
               registry=None):
     def register():
         if registry is None:
+            if implicit.registry is None:
+                raise NoImplicitRegistryError(
+                    "Cannot register without explicit "
+                    "registry decorator because implicit registry "
+                    "is not configured.")
             use_registry = implicit.registry
         elif not IRegistry.providedBy(registry):
             use_registry = registry()
