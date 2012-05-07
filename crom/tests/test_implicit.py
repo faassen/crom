@@ -69,3 +69,34 @@ def test_implicit_reset_lookup_main():
     implicit.reset_lookup()
     assert implicit.lookup is implicit.registry
     
+def test_implicit_reset_lookup_thread():
+    log = []
+    other_lookup = object()
+    def f():
+        implicit.lookup = other_lookup
+        log.append(implicit.lookup)
+        implicit.reset_lookup()
+        log.append(implicit.lookup)
+        
+    thread = threading.Thread(target=f)
+    thread.start()
+    thread.join()
+    assert log[0] is other_lookup
+    assert log[1] is implicit.base_lookup
+
+def test_lookup_in_thread_does_not_use_changed_default():
+    log = []
+    def f():
+        log.append(implicit.lookup)
+    thread = threading.Thread(target=f)
+
+    other_lookup = object()
+    implicit.lookup = other_lookup
+    
+    thread.start()
+    thread.join()
+    assert len(log) == 1
+    # possibly contrary to expections, changing the default lookup
+    # in the main thread does not affect sub-threads; they will still
+    # use the original initialization
+    assert log[0] is implicit.registry
