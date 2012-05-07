@@ -1,14 +1,12 @@
 import crom
-from crom import monkey
+from crom import testing
 
 def setup_function(method):
-    monkey.incompat()
-    crom.setup()
+    testing.setup()
     
 def teardown_function(method):
-    monkey.revert_incompat()
-    crom.teardown()
-    
+    testing.teardown()
+
 def test_component():
     from .fixtures import component as module
     # grok the component module

@@ -1,5 +1,5 @@
 from zope.interface.interfaces import ComponentLookupError
-from .current import current
+from .implicit import implicit
 
 SENTINEL = object()
 
@@ -24,7 +24,7 @@ def do_lookup(iface, lookup_func, component_name, *args, **kw):
 def find_lookup(kw):
     lookup = kw.pop('lookup', None)
     if lookup is None:
-        lookup = current.lookup
+        lookup = implicit.lookup
     return lookup
 
 # iface will serve as 'self' when monkey-patched onto InterfaceClass

@@ -1,6 +1,6 @@
 from grokker import grokker, directive
 from .directives import sources, target, name, registry
-from .current import current
+from .implicit import implicit
 from .interfaces import IRegistry
 
 @grokker
@@ -12,7 +12,7 @@ def component(scanner, pyname, obj, sources, target, name='',
               registry=None):
     def register():
         if registry is None:
-            use_registry = current.registry
+            use_registry = implicit.registry
         elif not IRegistry.providedBy(registry):
             use_registry = registry()
         else:

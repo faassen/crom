@@ -7,9 +7,7 @@ from .lookup import ListLookup, ChainLookup
 from .directives import sources, target, name, registry, implements
 from .grokkers import component, adapter
 
-from .current import current
-setup = current.setup
-teardown = current.teardown
+from .implicit import implicit
 
 from .config import grok, configure
 
@@ -24,5 +22,5 @@ __all__ = ["Interface", "ComponentLookupError",
            "Registry", "ListLookup", "ChainLookup",
            "sources", "target", "name", "registry", "implements",
            "component", "adapter",
-           "current", "setup", "teardown", "grok", "configure"]
+           "implicit", "grok", "configure"]
 
