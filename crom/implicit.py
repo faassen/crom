@@ -3,19 +3,23 @@ from .registry import Registry
 from .directives import implements
 from .interfaces import IImplicit
 
+class Local(threading.local):
+    def __init__(self, **kw):
+        self.__dict__.update(kw)
+    
 @implements(IImplicit)
 class Implicit(object):
     def __init__(self):
         self._registry = None
-        self.local = threading.local()
-
+        self.local = None
+        
     def initialize(self):
         self.initialize_with_registry(Registry())
 
     def initialize_with_registry(self, registry):
         self._registry = registry
-        self.local.lookup = registry
-
+        self.local = Local(lookup=registry)
+        
     def clear(self):
         self._registry = None
         self.local.lookup = None
@@ -30,6 +34,8 @@ class Implicit(object):
         
     @property
     def lookup(self):
+        if self.local is None:
+            return None
         return self.local.lookup
 
     @lookup.setter

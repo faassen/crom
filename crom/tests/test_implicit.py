@@ -1,36 +1,41 @@
 import threading
-#from crom.current import current
+from crom.implicit import implicit
 
-# def test_lookup_in_thread_uses_default():
-#     foo = object()
-#     current.registry = foo
-#     current.lookup = current.registry
-    
-#     log = []
-#     def f():
-#         log.append(current.lookup)
-    
-#     thread = threading.Thread(target=f)
-#     thread.start()
-#     thread.join()
-#     assert len(log) == 1
-#     assert log[0] is foo
+def test_lookup_in_main():
+    implicit.initialize()
 
-# def test_changed_lookup_in_thread_doesnt_affect_main():
-#     foo = object()
-#     bar = object()
-#     current.registry = foo
-#     current.lookup = current.registry
+    assert implicit.lookup is implicit.registry
     
-#     log = []
-#     def f():
-#         current.lookup = bar
-#         log.append(current.lookup)
+def test_lookup_in_thread_uses_default():
+    implicit.initialize()
     
-#     thread = threading.Thread(target=f)
-#     thread.start()
-#     thread.join()
-#     assert len(log) == 1
-#     assert log[0] is bar
-#     assert current.lookup is foo
+    log = []
+    def f():
+        log.append(implicit.lookup)
     
+    thread = threading.Thread(target=f)
+    thread.start()
+    thread.join()
+    assert len(log) == 1
+    assert log[0] is implicit.registry
+
+def test_changed_lookup_in_thread_doesnt_affect_main():
+    implicit.initialize()
+
+    # a different ILookup
+    # (we don't actually fulfill the interface as that's not needed for
+    # this test)
+    different_lookup = object()
+
+    log = []
+    def f():
+        implicit.lookup = different_lookup
+        log.append(implicit.lookup)
+    
+    thread = threading.Thread(target=f)
+    thread.start()
+    thread.join()
+    assert len(log) == 1
+    assert log[0] is different_lookup
+    assert implicit.lookup is implicit.registry
+    assert implicit.lookup is implicit.base_lookup
