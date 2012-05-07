@@ -10,8 +10,5 @@ target = Directive('target', 'crom',
                    validator=interface_validator)
 name = Directive('name', 'crom', validator=validator.str_validator)
 
-# a factory that when called gives back the registry
-registry = Directive('registry', 'crom')
-
 implements = implementer
 

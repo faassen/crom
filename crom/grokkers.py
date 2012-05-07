@@ -1,28 +1,31 @@
-from grokker import grokker, directive
-from .directives import sources, target, name, registry
+from grokker import grokker, directive, Directive
+from .directives import sources, target, name
 from .implicit import implicit
 from .interfaces import IRegistry, NoImplicitRegistryError
+
+def registry_converter(registry):
+    if registry is not None:
+        if not IRegistry.providedBy(registry):
+            return registry()
+        return registry
+    if implicit.registry is None:
+        raise NoImplicitRegistryError(
+            "Cannot register without explicit "
+            "registry decorator because implicit registry "
+            "is not configured.")
+    return implicit.registry
+
+# this needs to be defined here to avoid circular imports
+registry = Directive('registry', 'crom', converter=registry_converter)
 
 @grokker
 @directive(sources)
 @directive(target)
 @directive(name)
 @directive(registry)
-def component(scanner, pyname, obj, sources, target, name='',
-              registry=None):
+def component(scanner, pyname, obj, sources, target, registry, name=''):
     def register():
-        if registry is None:
-            if implicit.registry is None:
-                raise NoImplicitRegistryError(
-                    "Cannot register without explicit "
-                    "registry decorator because implicit registry "
-                    "is not configured.")
-            use_registry = implicit.registry
-        elif not IRegistry.providedBy(registry):
-            use_registry = registry()
-        else:
-            use_registry = registry
-        use_registry.register(sources, target, name, obj)
+        registry.register(sources, target, name, obj)
     scanner.config.action(
         discriminator=('component', sources, target, name, registry),
         callable=register

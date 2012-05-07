@@ -31,13 +31,14 @@ def test_no_implicit_initialization():
     assert log[0] is None
     assert log[1] is None
     assert log[2] is None
-    
+
+# XXX would like these exceptions to be more clear about
+# *which* directive invocation is failing
 def test_no_implicit_grokking():
     from .fixtures import component as module
     # grok the component module
-    with py.test.raises(ConfigurationExecutionError) as e:
+    with py.test.raises(NoImplicitRegistryError):
         crom.configure(module)
-    assert isinstance(e.value.evalue, NoImplicitRegistryError)
 
 def test_no_implicit_lookup():
     from .fixtures import component as module

@@ -4,8 +4,8 @@ from zope.interface.interfaces import ComponentLookupError
 from .registry import Registry
 from .lookup import ListLookup, ChainLookup
 
-from .directives import sources, target, name, registry, implements
-from .grokkers import component, adapter
+from .directives import sources, target, name, implements
+from .grokkers import component, adapter, registry
 
 from .implicit import implicit
 
