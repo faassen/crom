@@ -11,6 +11,8 @@ from .implicit import implicit
 
 from .config import grok, configure
 
+from .mapping import MapKey, Map, MultiMap
+
 # we do the absolutely compatible monkey patches , not breaking
 # the __call__ behavior of interface in any possible way as we don't touch it
 # to change the __call__ behavior use crom.monkey.compat() instead (or in
