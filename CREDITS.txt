@@ -1,0 +1,24 @@
+CREDITS
+=======
+
+Implementation
+--------------
+
+* Martijn Faassen
+
+* Thomas Lotze (mapping)
+
+* Souheil Chelfouh
+
+Helpful discussions and feedback
+--------------------------------
+
+* Jan-Wijbrand Kolman
+
+* Holger Krekel
+
+* Gary Poster
+
+* Chris McDonough
+
+Inspired by zope.interface and zope.component by Jim Fulton.
