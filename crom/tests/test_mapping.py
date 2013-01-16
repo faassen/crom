@@ -95,7 +95,31 @@ def test_map_ancestor_direct_key_wins():
     m[d] = u'Value for D'
     
     assert m[d] == u'Value for D'
-    
+
+def test_map_all():
+    m = Map()
+    a = MapKey('a')
+    b = MapKey('b', parents=[a])
+    c = MapKey('c', parents=[a])
+    d = MapKey('d', parents=[b, c])
+
+    m[b] = u'Value for B'
+    m[c] = u'Value for C'
+    m[d] = u'Value for D'
+    assert m.all(d) == [u'Value for D', u'Value for B', u'Value for C']
+
+def test_map_all_empty(): 
+    m = Map()
+    a = MapKey('a')
+    b = MapKey('b', parents=[a])
+    c = MapKey('c', parents=[a])
+    d = MapKey('d', parents=[b, c])
+
+    m[b] = u'Value for B'
+    m[c] = u'Value for C'
+    m[d] = u'Value for D'
+    assert m.all(d) == [u'Value for D', u'Value for B', u'Value for C']
+   
 def test_exact_getitem():
     m = Map()
     a = MapKey('a')
@@ -175,4 +199,40 @@ def test_multimap_with_fallback():
     assert m[(alpha, one)] == u'Value for alpha, one'
     assert m[(alpha, two)] == u'Value for alpha, one'
     assert m[(beta, one)] == u'Value for alpha, one'
-    
+
+@py.test.skip()
+def test_multimap_all():
+    m = MultiMap()
+
+    alpha = MapKey('alpha')
+    beta = MapKey('beta', [alpha])
+    gamma = MapKey('gamma', [beta])
+
+    one = MapKey('one')
+    two = MapKey('two', [one])
+    three = MapKey('three', [two])
+
+    m[(alpha, three)] = u'Value for alpha, three'
+    m[(beta, two)] = u'Value for beta, two'
+    m[(alpha, one)] = u'Value for alpha, one'
+
+
+    # this gets the more specific interface
+    assert m.all((alpha, three)) == [u'Value for alpha, three',
+                                     u'Value for alpha, one']
+    assert m.all((beta, two)) == [u'Value for beta, two',
+                                  u'Value for alpha, one']
+    assert m.all((gamma, two)) == [u'Value for beta, two',
+                                   u'Value for alpha, one']
+    assert m.all((beta, three)) == [u'Value for beta, two',
+                                    u'Value for alpha, one']
+    assert m.all((gamma, three)) == [u'Value for beta, two',
+                                     u'Value for alpha, one']
+
+    # this uses the fallback only
+    assert m.all((alpha, one)) == [u'Value for alpha, one']
+    assert m.all((alpha, two)) == [u'Value for alpha, one']
+    assert m.all((beta, one)) == [u'Value for alpha, one']
+
+
+# XXX test_multimap_deletion

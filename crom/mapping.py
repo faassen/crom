@@ -46,7 +46,8 @@ class Map(dict):
     def __getitem__(self, key):
         for mapkey in key._parent_mapkeys:
             try:
-                return super(Map, self).__getitem__(mapkey)
+                # XXX can this be an exact_getitem instead?
+                return self.exact_getitem(mapkey)
             except KeyError:
                 pass
         raise KeyError(key)
@@ -57,6 +58,15 @@ class Map(dict):
         except KeyError:
             return default
 
+    def all(self, key):
+        result = []
+        for mapkey in key._parent_mapkeys:
+            try:
+                result.append(self.exact_getitem(mapkey))
+            except KeyError:
+                pass
+        return result
+    
 class MultiMap(object):
     """map that takes sequences of MapKey objects as key.
 
@@ -81,10 +91,11 @@ class MultiMap(object):
         last_key = key.pop()
         map = self._by_arity
         for k in key:
-           submap = dict(map).get(k)
-           if submap is None:
-               submap = map[k] = Map()
-           map = submap
+            # XXX why is the dict() call here?
+            submap = dict(map).get(k)
+            if submap is None:
+                submap = map[k] = Map()
+            map = submap
         map[last_key] = value
 
     def __delitem__(self, key):
@@ -98,17 +109,46 @@ class MultiMap(object):
 
     def __getitem__(self, key):
         arity = MapKey(len(key))
-        map = self._by_arity
-        return self._getitem_recursive(map, arity, *key)
+        key = [arity] + list(key)
+        return self._getitem_recursive(self._by_arity, key)
 
     # XXX missing exact_getitem, exact_get
 
-    def _getitem_recursive(self, map, k, *key):
-        if not key:
-            return map[k]
-        for parent in k._parent_mapkeys:
+    def _getitem_recursive(self, map, key):
+        first = key[0]
+        rest = key[1:]
+        if not rest:
+            return map[first]
+        for parent in first._parent_mapkeys:
             try:
-                return self._getitem_recursive(map[parent], *key)
+                return self._getitem_recursive(map[parent], rest)
             except KeyError, e:
                 pass
         raise e
+
+    def all(self, key):
+        arity = MapKey(len(key))
+        key = [arity] + list(key)
+        found = {}
+        return self._all_recursive(found, self._by_arity, key)
+
+    def _all_recursive(self, found, map, key):
+        value = found.get(key)
+        if value is not None:
+            return value
+        first = key[0]
+        rest = key[1:]
+        if not rest:
+            value = map.all(first)
+            found[first] = value
+            return value
+        result = []
+        for parent in first._parent_mapkeys:
+            try:
+                result.extend(self._all_recursive(found, map[parent], rest))
+            except KeyError, e:
+                pass
+        found[key] = result
+        return result
+
+    
