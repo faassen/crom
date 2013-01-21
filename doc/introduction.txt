@@ -69,23 +69,26 @@ and instead write ``IMailer.component()`` inline in your code::
               subject="Hello world",
               body="Hello world indeed!")
 
-We've described how to look up a mailer, but how do you configure it?
+We've described how to look up a mailer, but how do you make it available?
 
 ::
 
+  @crom.instance
   @crom.implements(IMailer)
-  @crom.instance(IMailer)
+  @crom.target(IMailer)
   class MyMailer(object):
       def send(address, subject, body):
           ...
 
-This creates a mailer that implements the ``IMailer`` interface, and registers
-an instance of it (by calling ``MyMailer()``) with crom.
+This creates a mailer that implements the ``IMailer`` interface
+(``@implements``), and registers an instance of it (by calling
+``MyMailer()``) with crom for the interface ``IMailer`` again.
 
-If you want to have control over the creation of this instance, you can
-instead use ``@crom.instance`` with a factory function::
+If you want to have control over the creation of this instance, you
+can instead use ``@crom.instance`` with a factory function::
 
-  @crom.instance(IMailer)
+  @crom.instance
+  @crom.target(IMailer)
   def make_mailer():
       return MyMailer()
 
