@@ -21,4 +21,6 @@ Helpful discussions and feedback
 
 * Chris McDonough
 
+* Ignas Mikalajūnas
+
 Inspired by zope.interface and zope.component by Jim Fulton.
