@@ -1,0 +1,93 @@
+Introduction to Crom
+====================
+
+Crom provides a component architecture for Python code. That is sounds
+very abstract, so let's get more concrete.
+
+Consider an application that needs a facility to send email. The
+requirement exists to use this same application in multiple
+configurations -- different ways to send emails. For a basic
+configuration a synchronous SMTP command might be enough, but for a
+more scalable configuration an asynchronous mail spool might be used
+instead.
+
+It would be good if the application code that sends the email is
+agnostic as to *how* the email is sent. We simply want to send an
+email to an address, and not care about how it's done. Let's consider
+a snippet of Python code that uses such a decoupled approach::
+
+  mailer = get_mailer()
+  mailer.send(address="foo@example.com", 
+              subject="Hello world",
+              body="Hello world indeed!")
+
+We depend on the function ``get_mailer`` to return an object that has a
+``send`` method, which is used to send email.
+
+Crom lets you make explicit what ``mailer`` is all about in an
+*interface*: a description of related methods and other attributes
+provided by an object::
+
+  import crom
+
+  class IMailer(crom.Interface):
+      "Email something to someone."
+      def send(address, subject, body):
+         "Send email to address with subject and message body."
+
+What is that good for? 
+
+An interface is documentation of an API -- now everybody who wants to
+implement a mailer knows what kind of API is required. We've
+documented what a mailer plugin should look like. That's useful in the
+case where we want to allow developers to implement new kinds of
+mailers in the future and plug them in without having to change the
+code that uses the mailer.
+
+Let's consider the function ``get_mailer`` next. It obtains the mailer
+currently configured for the application. But how would we implement this?
+
+We need some kind of configuration system for our application so we
+can specify what the mailer object is that we want to use, and we'd
+need to implement ``get_mailer`` to use this configuration and obtain
+(or construct) the mailer object.
+
+Crom has facilities to take care of this for you. With crom, you can
+implement ``get_mailer`` in one line::
+
+   def get_mailer():
+      return IMailer.component()
+
+``IMailer.component`` looks up a configured object that provides the
+``IMailer`` interface.
+
+Since it's only a single line, you may choose to forgo a specific API
+and instead write ``IMailer.component()`` inline in your code::
+   
+  mailer = IMailer.component()
+  mailer.send(address="foo@example.com", 
+              subject="Hello world",
+              body="Hello world indeed!")
+
+We've described how to look up a mailer, but how do you configure it?
+
+::
+
+  @crom.implements(IMailer)
+  @crom.instance(IMailer)
+  class MyMailer(object):
+      def send(address, subject, body):
+          ...
+
+This creates a mailer that implements the ``IMailer`` interface, and registers
+an instance of it (by calling ``MyMailer()``) with crom.
+
+If you want to have control over the creation of this instance, you can
+instead use ``@crom.instance`` with a factory function::
+
+  @crom.instance(IMailer)
+  def make_mailer():
+      return MyMailer()
+
+This code may be in some other Python package altogether, as long as
+the configuration engine is made aware of it.
