@@ -2,7 +2,27 @@ Introduction to Crom
 ====================
 
 Crom provides a component architecture for Python code. That is sounds
-very abstract, so let's get more concrete.
+very abstract, so let's get more concrete to illustrate why you might
+want to use this.
+
+What is Crom Good For?
+----------------------
+
+Crom is not useful for small applications if you expect them to stay
+small. Crom is not so useful for libraries either.
+
+Crom is useful for frameworks and framework-like applications that
+need to grow over time, that need to be deployed in different context
+with different requirements, that need to be pluggable, that have
+extensions written by other people than the people maintaining the
+application core, or at least if you have the requirement to separate
+these concerns in code, for instance to make testing easier.
+
+Think web frameworks, or content management systems. Think model/view
+separation.
+
+The Hypothetical Problem
+------------------------
 
 Consider an application that needs a facility to send email. The
 requirement exists to use this same application in multiple
@@ -14,7 +34,8 @@ instead.
 It would be good if the application code that sends the email is
 agnostic as to *how* the email is sent. We simply want to send an
 email to an address, and not care about how it's done. Let's consider
-a snippet of Python code that uses such a decoupled approach::
+a snippet of hypothetical Python code that uses such a decoupled
+approach::
 
   mailer = get_mailer()
   mailer.send(address="foo@example.com", 
@@ -23,6 +44,9 @@ a snippet of Python code that uses such a decoupled approach::
 
 We depend on the function ``get_mailer`` to return an object that has a
 ``send`` method, which is used to send email.
+
+Explicit Pluggability: Interfaces
+---------------------------------
 
 Crom lets you make explicit what ``mailer`` is all about in an
 *interface*: a description of related methods and other attributes
@@ -44,16 +68,77 @@ case where we want to allow developers to implement new kinds of
 mailers in the future and plug them in without having to change the
 code that uses the mailer.
 
-Let's consider the function ``get_mailer`` next. It obtains the mailer
-currently configured for the application. But how would we implement this?
+Of course if documentation was all it was good for we didn't need to
+introduce a new code construct. You could just include it in your
+actual project documentation instead -- something that ideally you
+should do anyway. So let's go on a little bit and see what else
+interfaces are good for: looking things up.
 
-We need some kind of configuration system for our application so we
-can specify what the mailer object is that we want to use, and we'd
-need to implement ``get_mailer`` to use this configuration and obtain
-(or construct) the mailer object.
+Open Closed Principle
+----------------------
 
-Crom has facilities to take care of this for you. With crom, you can
-implement ``get_mailer`` in one line::
+Let's consider the function ``get_mailer``. It obtains the mailer
+currently configured for the application; it promises to return a
+component that provides ``IMailer``. Let's consider what the
+implementation of this function might look like.
+
+We need some way to express in the application which mailer object is
+the one we want to use. Then we need to write ``get_mailer`` so that
+it uses this information to obtain the mailer object.
+
+One simple approach would be to hardcode it::
+
+  mailer = MyMailer() # the mailer we want to use
+
+  def get_mailer():
+      return mailer
+
+This approach has a problem: what if we want to install the same
+application somewhere else and use a different mailer? The code that
+*uses* the mailer is dependent on the hardcoded mailer instance
+now. For each deployment where we want to vary the mailer, we would
+need to change the hardcoded code. This breaks the `open-closed
+principle`_: "software entities should be open for extension, but
+closed for modification".
+
+.. _`open-closed principle`: https://en.wikipedia.org/wiki/Open/closed_principle
+
+Instead, we want to let the application know which mailer to use from
+outside the core code; for instance in extension code specific to the
+particular deployment. How do we accomplish that?
+
+Inversion of Control
+--------------------
+
+To make sure there is no hard dependency on a particular mailer, we
+can instead register the mailer with the core in external code. We
+could do something like this::
+
+  mailer = None # no mailer yet
+
+  def register_mailer(m):
+      mailer = mailer
+
+  def get_mailer():
+      return mailer
+
+And then in extension code, we could register the mailer we want::
+
+  from application_core import register_mailer
+
+  register_mailer(MyMailer())
+
+``application_core`` here is the name of the module or package that
+defines your application.
+
+Doing something like this decouples the specific mailer dependency
+from the application by `inverting control`_.
+
+.. _`inverting control`: https://en.wikipedia.org/wiki/Inversion_of_control
+
+Crom has facilities to generalize and automate this pattern for you.
+With crom, you use the interface to look up the required component. 
+``get_mailer`` is then implemented like this::
 
    def get_mailer():
       return IMailer.component()
@@ -69,13 +154,15 @@ and instead write ``IMailer.component()`` inline in your code::
               subject="Hello world",
               body="Hello world indeed!")
 
-We've described how to look up a mailer, but how do you make it available?
+Registration
+------------
+
+We've described how to look up a mailer component, but how do you make
+it available?
 
 ::
 
-  @crom.instance
-  @crom.implements(IMailer)
-  @crom.target(IMailer)
+  @crom.instance(target=IMailer)
   class MyMailer(object):
       def send(address, subject, body):
           ...
@@ -84,13 +171,246 @@ This creates a mailer that implements the ``IMailer`` interface
 (``@implements``), and registers an instance of it (by calling
 ``MyMailer()``) with crom for the interface ``IMailer`` again.
 
-If you want to have control over the creation of this instance, you
-can instead use ``@crom.instance`` with a factory function::
+If you want to have more detailed control over the creation of this
+instance, you can instead use ``@crom.instance`` with a factory
+function::
 
-  @crom.instance
-  @crom.target(IMailer)
+  @crom.instance(target=IMailer)
   def make_mailer():
       return MyMailer()
 
-This code may be in some other Python package altogether, as long as
-the configuration engine is made aware of it.
+This code does not have to be in the application core but can be in an
+extension; it only needs to depend on the application core to import
+the ``IMailer`` interface.
+
+The Problem with Extending Classes
+----------------------------------
+
+Let's introduce a new concept with another example.
+
+Imagine you have model objects in your application that need to be
+exportable in a JSON representation. (In Python terms, JSON is a
+structure consisting of dictionaries, lists, strings and numbers and
+little else more.)
+
+The simple way to accomplish this would be to create a ``to_json()`` method
+on each object that needs to have a JSON representation. Let's consider
+a hypothetical customer model that has a name and a number::
+
+  class Customer(object):
+      def __init__(self, name, number):
+           self.name = name
+           self.number = number
+
+      def to_json(self):
+           return {
+              'name': self.name,
+              'number': self.number
+           }
+
+Each model object now needs to implement ``to_json`` in order to be
+exportable as JSON. What if your application also needs the ability to
+export objects in an XML representation? We can add ``to_xml`` to each
+object as well. And what if we want to represent our model objects as
+HTML? We add a ``to_html`` method. When you want to implement a model
+object you now have to remember to implement all of these methods as
+well. If your application has many responsabilities it can become
+quite cumbersome to write new models, and to read existing model code,
+as all this representation code is now also there.
+
+Instead of writing a lot of custom ``to_json`` methods, you could
+decide that you can write general code to do JSON representation for
+arbitrary Python objects instead. You can do this with a base class that
+you inherit from::
+
+   class JSONRepresentable(object):
+       def to_json(self):
+           # general JSON export code here
+
+   class Customer(JSONRepresentable):
+      def __init__(self, name, number):
+           self.name = name
+           self.number = number
+       
+If for particular classes you *do* want a custom ``to_json`` you can
+still do so by overriding ``to_json``::
+
+    class Organization(JSONRepresentable):
+       def __init_(self, name):
+           self.name = name
+
+       def to_json(self):
+           # specific JSON export code for Organization here
+
+But now to play along in your application your model might need to 
+inherit from a *lot* of base classes::
+
+   class Customer(JSONRepresentable, XMLRepresentable, HTMLRepresentable):
+      def __init__(self, name, number):
+           self.name = name
+           self.number = number
+
+That can become cumbersome to remember. And when you examine the
+class, the methods are still there as well, which in a larger
+application framework could become a very fat API, which is a bit
+ugly.
+
+The code is also pretty tightly coupled: imagine a core application maintained
+by someone else and not under your control, and you now want to add the
+facility to represent models as JSON.
+
+Decoupling the Extension
+------------------------
+
+Let's imagine we have that situation: a collection of model classes
+written by someone else, and you want the ability to represent them as
+JSON in an extension. How would you do that? The simple Python solution
+might be something like this::
+
+  from application_core import Customer, Organization
+
+  def to_json(model):
+      if isinstance(model, Customer):
+          return {'name': model.name, 'number': model.number}
+      elif isinstance(model, Organization):
+        return ... # whatever is appropriate for organization
+
+An approach like this also allows you to introduce a generic fallback 
+that can create JSON for arbitrary models::
+
+  def to_json(model):
+      if isinstance(model, Customer):
+          return {'name': model.name, 'number': model.number}
+      elif isinstance(model, Organization):
+          return ... # whatever is appropriate for organization
+      else:
+          return ... # generic JSON generation code
+
+All this can get rather involved for a single function, so let's
+separate this into separate functions instead::
+
+  def customer_to_json(model):
+      return {'name': model.name, 'number': model.number}
+
+  def organization_to_json(model):
+      return ... # whatever is appropriate for organization
+
+  def generic_to_json(model):
+      return ... # generic JSON generation code
+      
+  def to_json(model):
+      if isinstance(model, Customer):
+          return customer_to_json(model)
+      elif isinstance(model, Organization):
+          return organization_to_json(model):
+      else:
+         return generic_to_json(model)
+
+Breaking the Open Closed Principle Again
+----------------------------------------
+
+What now if the application gains an optional extension that
+introduces new models? We could change ``to_json`` some more::
+
+  from application_core import Customer, Organization
+  from accountant_extension import Accountant
+
+  def to_json(model):
+      if isinstance(model, Customer):
+          return customer_to_json(model)
+      elif isinstance(model, Organization):
+          return organization_to_json(model):
+      elif isinstance(model, Accountant):
+          return accountant_to_json(model)
+      else:
+         return generic_to_json(model)
+
+But now our code is dependent on both the core *and* the
+``accountant_extension``, and what if we have a deployment of the
+application that *does* need the core and the ability to do
+``to_json`` but *not* the ``accountant_extension``? We cannot
+accomplish this as we've hardcoded a dependency on the extension as
+well.
+
+More Registration
+-----------------
+
+Instead we can modify this code to use a registry::
+
+   to_json_registry = {}
+
+   def register_to_json(model_class, func):
+       to_json_registry[model_class] = func
+
+   def to_json(model):
+       func = to_json_registry.get(model.__class__)
+       if func is None:
+           return generic_to_json(model)
+       return func(model)
+
+In the JSON extension for the application core we can then do::
+
+   register_to_json(Customer, customer_to_json)
+   register_to_json(Organization, organization_to_json)
+
+and in the accountancy extension (or in an extension to this
+extension...) we can do::
+
+   register_to_json(Accountant, accountant_to_json)
+
+Adapters
+--------
+
+So you guessed it: Crom has facilities to generalize and automate this
+pattern for you, too.
+
+We introduce the concept of an *adapter*: a component that extends another
+component with new abilities. It's very simple::
+
+   class CustomerToJson(object):
+      def __init__(self, customer):
+          self.customer = customer
+
+      def to_json(self):
+          return {'name': self.customer.name, 'number': self.customer.number}
+
+If we have a customer object, we can get its JSON like this::
+  
+   CustomerToJson(customer).to_json()
+
+Here we have hardcoded a dependency on the ``CustomerToJson`` class
+however, which produces tightly coupled code. To decouple things
+we introduce a ``IToJson`` interface:::
+
+   class IToJson(crom.Interface):
+       def to_json():
+           "Represent object as JSON"
+
+We can now use the interface to look up the appropriate ``ToJson`` adapter
+for our model, by calling the interface with the model we want to adapt::
+
+   IToJson(some_model).to_json()
+
+Registering Adapters
+--------------------
+
+We've seen only one half of the Crom solution to this pattern; now we
+need a way to register the adapters. It's done like this::
+
+  @crom.adapter(source=Customer, target=IToJson)
+  class CustomerToJson(object):
+      def __init__(self, customer):
+          self.customer = customer
+
+      def to_json(self):
+          return {'name': self.customer.name, 'number': self.customer.number}
+     
+This registers the ``CustomerToJson`` class as an adapter from the
+``Customer`` class to ``IToJson``.
+
+Since this registration can be done anywhere, you can do it in
+extension code and the code can remain nicely decoupled.
+
+
+   
+ 
